@@ -1,0 +1,10 @@
+﻿Name: Moov2.Orchard.MigrateMedia
+AntiForgery: enabled
+Author: The Orchard Team
+Website: http://orchardproject.net
+Version: 1.0
+OrchardVersion: 1.10.2
+Description: Migrates media files
+Features:
+    Moov2.Orchard.MigrateMedia:
+        Description: Migrates media files
