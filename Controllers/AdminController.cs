@@ -1,4 +1,5 @@
 ﻿using Moov2.Orchard.MigrateMedia.Models;
+using Moov2.Orchard.MigrateMedia.Services;
 using Orchard;
 using Orchard.Localization;
 using Orchard.UI.Notify;
@@ -17,6 +18,7 @@ namespace Moov2.Orchard.MigrateMedia.Controllers
 
         #region Dependencies
 
+        private readonly IMigrateMediaService _migrateMediaService;
         private readonly IOrchardServices _orchardServices;
 
         public Localizer T { get; set; }
@@ -25,8 +27,9 @@ namespace Moov2.Orchard.MigrateMedia.Controllers
 
         #region Constructor
 
-        public AdminController(IOrchardServices orchardServices)
+        public AdminController(IMigrateMediaService migrateMediaService, IOrchardServices orchardServices)
         {
+            _migrateMediaService = migrateMediaService;
             _orchardServices = orchardServices;
 
             T = NullLocalizer.Instance;
@@ -51,9 +54,16 @@ namespace Moov2.Orchard.MigrateMedia.Controllers
             if (!model.UseConfigurationAzureBlobStorage && string.IsNullOrWhiteSpace(model.CustomAzureBlobStorageConnectionString))
                 ModelState.AddModelError("CustomAzureBlobStorageConnectionString", "Azure Blob Storage Connection String is required.");
 
+            model.ConfiguredAzureBlobStorage = RemoveSensitiveInfoFromConnectionString(ConfigurationManager.AppSettings[MediaStorageStorageConnectionStringSettingName]);
+
             if (!ModelState.IsValid)
+                return View(model);
+
+            var connectionString = model.UseConfigurationAzureBlobStorage ? ConfigurationManager.AppSettings[MediaStorageStorageConnectionStringSettingName] : model.CustomAzureBlobStorageConnectionString;
+
+            if (!_migrateMediaService.CanConnectToAzureCloudStorage(connectionString))
             {
-                model.ConfiguredAzureBlobStorage = RemoveSensitiveInfoFromConnectionString(ConfigurationManager.AppSettings[MediaStorageStorageConnectionStringSettingName]);
+                _orchardServices.Notifier.Add(NotifyType.Error, T("Migration failed: Unable to connect to Azure blob storage."));
                 return View(model);
             }
 
