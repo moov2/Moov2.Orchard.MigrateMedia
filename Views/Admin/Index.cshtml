@@ -1,0 +1,38 @@
+﻿@model Moov2.Orchard.MigrateMedia.Models.MigrateMediaModel
+
+<h1>Migrate Media</h1>
+
+<form method="post">
+    @Html.ValidationSummary()
+    @Html.AntiForgeryToken()
+
+    @if (!string.IsNullOrWhiteSpace(Model.ConfiguredAzureBlobStorage))
+    {
+        <fieldset>
+            <span class="checkbox-and-label">
+                @Html.CheckBoxFor(m => m.UseConfigurationAzureBlobStorage)
+                <label for="@Html.FieldIdFor(m => m.UseConfigurationAzureBlobStorage)" class="forcheckbox">@T("Use configured Azure blob storage")</label>
+            </span>
+            <span class="hint">@T(string.Format("Use the Azure blob storage connection string defined in the Web.config (Account name is <em>{0}</em>).", Model.ConfiguredAzureBlobStorage))</span>
+        </fieldset>
+    }
+
+    <fieldset class="js-azure-blob-storage-connection-string-field" style="@(Model.UseConfigurationAzureBlobStorage ? "display: none;" : "")">
+        <label for="@Html.FieldIdFor(m => m.CustomAzureBlobStorageConnectionString)" class="required">@T("Azure Blob Storage Connection String")</label>
+        @Html.TextBoxFor(m => m.CustomAzureBlobStorageConnectionString, new { @class = "text large" })
+    </fieldset>
+
+    <fieldset>
+        <button type="submit">Begin Migration</button>
+    </fieldset>
+</form>
+
+<script>
+    window.addEventListener('load', function () {
+        var $field = document.querySelector('.js-azure-blob-storage-connection-string-field');
+
+        document.querySelector('#UseConfigurationAzureBlobStorage').addEventListener('click', function (e) {
+            $field.style = (e.target.checked) ? 'display: none' : '';
+        });
+    });
+</script>
