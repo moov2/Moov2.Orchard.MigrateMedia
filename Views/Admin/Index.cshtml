@@ -1,10 +1,21 @@
 ﻿@model Moov2.Orchard.MigrateMedia.Models.MigrateMediaModel
 
+@using Moov2.Orchard.MigrateMedia.Services
+
 <h1>Migrate Media</h1>
 
 <form method="post">
     @Html.ValidationSummary()
     @Html.AntiForgeryToken()
+
+    <fieldset>
+        <label for="@Html.FieldIdFor(m => m.MigrationMethod)" class="required">@T("Migration Method")</label>
+        <select id="@Html.FieldIdFor(m => m.MigrationMethod)" name="@Html.FieldIdFor(m => m.MigrationMethod)">
+            <option value="">- Please select migration method -</option>
+            <option value="@MigrateMethodTypes.AzureBlobStorageToFileSystem">Azure Blob Storage to File System</option>
+            <option value="@MigrateMethodTypes.FileSystemToAzureBlobStorage">File System to Azure Blob Storage</option>
+        </select>
+    </fieldset>
 
     @if (!string.IsNullOrWhiteSpace(Model.ConfiguredAzureBlobStorage))
     {

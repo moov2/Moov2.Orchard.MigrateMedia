@@ -56,7 +56,64 @@ namespace Moov2.Orchard.MigrateMedia.Services
             }
         }
 
-        public MigrateMediaResult MigrateFileSystemToAzureBlobStorageAsync(string connectionString, bool isOverwrite)
+        public MigrateMediaResult MigratAzureBlobStorageToFileSystem(string connectionString, bool isOverwrite)
+        {
+            var mediaItems = _mediaLibraryService.GetMediaContentItems()
+                .List();
+
+            var result = new MigrateMediaResult();
+            var azureFileSystem = InitializeAzureFileSystem(connectionString);
+
+            foreach (var mediaItem in mediaItems)
+            {
+                var path = Path.Combine(mediaItem.FolderPath, mediaItem.FileName);
+
+                if (!azureFileSystem.FileExists(path) || (!isOverwrite && _storageProvider.FileExists(path)))
+                {
+                    result.IgnoredCount++;
+                    continue;
+                }
+
+                try
+                {
+                    if (isOverwrite && _storageProvider.FileExists(path))
+                        _storageProvider.DeleteFile(path);
+
+                    var file = _storageProvider.CreateFile(path);
+                    var azureFile = azureFileSystem.GetFile(path);
+
+                    using (var inputStream = azureFile.OpenRead())
+                    {
+                        using (var outputStream = file.OpenWrite())
+                        {
+                            var buffer = new byte[8192];
+                            while (true)
+                            {
+                                var length = inputStream.Read(buffer, 0, buffer.Length);
+
+                                if (length <= 0)
+                                    break;
+
+                                outputStream.Write(buffer, 0, length);
+                            }
+                        }
+                    }
+
+                    result.SuccessfulTransferCount++;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, string.Format("Failed to transfer media {0}.", path));
+                    result.UnsuccessfulTransferCount++;
+
+                    _storageProvider.DeleteFile(path);
+                }
+            }
+
+            return result;
+        }
+
+        public MigrateMediaResult MigrateFileSystemToAzureBlobStorage(string connectionString, bool isOverwrite)
         {
             var mediaItems = _mediaLibraryService.GetMediaContentItems()
                 .List();
@@ -90,8 +147,10 @@ namespace Moov2.Orchard.MigrateMedia.Services
                             while (true)
                             {
                                 var length = inputStream.Read(buffer, 0, buffer.Length);
+
                                 if (length <= 0)
                                     break;
+
                                 outputStream.Write(buffer, 0, length);
                             }
                         }
@@ -133,6 +192,8 @@ namespace Moov2.Orchard.MigrateMedia.Services
     {
         bool CanConnectToAzureCloudStorage(string connectionString);
 
-        MigrateMediaResult MigrateFileSystemToAzureBlobStorageAsync(string connectionString, bool isOverwrite);
+        MigrateMediaResult MigratAzureBlobStorageToFileSystem(string connectionString, bool isOverwrite);
+
+        MigrateMediaResult MigrateFileSystemToAzureBlobStorage(string connectionString, bool isOverwrite);
     }
 }

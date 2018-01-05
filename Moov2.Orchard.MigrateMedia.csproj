@@ -100,6 +100,7 @@
     <Compile Include="Routes.cs" />
     <Compile Include="Services\MigrateMediaResult.cs" />
     <Compile Include="Services\MigrateMediaService.cs" />
+    <Compile Include="Services\MigrateMethodTypes.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets.json" />

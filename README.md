@@ -1,12 +1,6 @@
 # Moov2.Orchard.MigrateMedia
 
-Offers ability to transfer from file system to Azure blob storage.
-
-## Status
-
-*Currently under development.*
-
-Plan is to add support for different sources / destinations.
+Easily transfer files between local file system and Azure blob storage through the Orchard admin area.
 
 ## Getting Setup
 

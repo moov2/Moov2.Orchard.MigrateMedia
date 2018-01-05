@@ -76,7 +76,7 @@ namespace Moov2.Orchard.MigrateMedia.Controllers
                 return View(model);
             }
 
-            var result = _migrateMediaService.MigrateFileSystemToAzureBlobStorageAsync(connectionString, model.IsOverwrite);
+            var result = model.MigrationMethod == MigrateMethodTypes.AzureBlobStorageToFileSystem ? _migrateMediaService.MigratAzureBlobStorageToFileSystem(connectionString, model.IsOverwrite) : _migrateMediaService.MigrateFileSystemToAzureBlobStorage(connectionString, model.IsOverwrite);
 
             if (result.SuccessfulTransferCount > 0 || result.UnsuccessfulTransferCount == 0)
                 _orchardServices.Notifier.Add(NotifyType.Information, T(string.Format("Successfully migrated {0} media item(s).", result.SuccessfulTransferCount)));
