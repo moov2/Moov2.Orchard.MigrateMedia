@@ -7,5 +7,7 @@
         public string CustomAzureBlobStorageConnectionString { get; set; }
 
         public bool UseConfigurationAzureBlobStorage { get; set; }
+
+        public int MediaItemsCount { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using Moov2.Orchard.MigrateMedia.Services;
 using Orchard;
 using Orchard.Localization;
+using Orchard.MediaLibrary.Services;
 using Orchard.UI.Notify;
 using System.Configuration;
 using System.Threading.Tasks;
@@ -19,6 +20,7 @@ namespace Moov2.Orchard.MigrateMedia.Controllers
 
         #region Dependencies
 
+        private readonly IMediaLibraryService _mediaLibraryService;
         private readonly IMigrateMediaService _migrateMediaService;
         private readonly IOrchardServices _orchardServices;
 
@@ -28,8 +30,9 @@ namespace Moov2.Orchard.MigrateMedia.Controllers
 
         #region Constructor
 
-        public AdminController(IMigrateMediaService migrateMediaService, IOrchardServices orchardServices)
+        public AdminController(IMediaLibraryService mediaLibraryService, IMigrateMediaService migrateMediaService, IOrchardServices orchardServices)
         {
+            _mediaLibraryService = mediaLibraryService;
             _migrateMediaService = migrateMediaService;
             _orchardServices = orchardServices;
 
@@ -44,8 +47,9 @@ namespace Moov2.Orchard.MigrateMedia.Controllers
         public ActionResult Index()
         {
             var model = new MigrateMediaModel();
-            model.ConfiguredAzureBlobStorage = RemoveSensitiveInfoFromConnectionString(ConfigurationManager.AppSettings[MediaStorageStorageConnectionStringSettingName]);
             model.UseConfigurationAzureBlobStorage = true;
+            SetDefaultModelProperties(model);
+
             return View(model);
         }
 
@@ -55,7 +59,7 @@ namespace Moov2.Orchard.MigrateMedia.Controllers
             if (!model.UseConfigurationAzureBlobStorage && string.IsNullOrWhiteSpace(model.CustomAzureBlobStorageConnectionString))
                 ModelState.AddModelError("CustomAzureBlobStorageConnectionString", "Azure Blob Storage Connection String is required.");
 
-            model.ConfiguredAzureBlobStorage = RemoveSensitiveInfoFromConnectionString(ConfigurationManager.AppSettings[MediaStorageStorageConnectionStringSettingName]);
+            SetDefaultModelProperties(model);
 
             if (!ModelState.IsValid)
                 return View(model);
@@ -99,6 +103,12 @@ namespace Moov2.Orchard.MigrateMedia.Controllers
             {
                 return connectionString;
             }
+        }
+
+        private void SetDefaultModelProperties(MigrateMediaModel model)
+        {
+            model.ConfiguredAzureBlobStorage = RemoveSensitiveInfoFromConnectionString(ConfigurationManager.AppSettings[MediaStorageStorageConnectionStringSettingName]);
+            model.MediaItemsCount = _mediaLibraryService.GetMediaContentItems().Count();
         }
 
         #endregion
