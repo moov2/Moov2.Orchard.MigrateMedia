@@ -6,8 +6,10 @@
 
         public string CustomAzureBlobStorageConnectionString { get; set; }
 
-        public bool UseConfigurationAzureBlobStorage { get; set; }
-
         public int MediaItemsCount { get; set; }
+
+        public bool IsOverwrite { get; set; }
+
+        public bool UseConfigurationAzureBlobStorage { get; set; }
     }
 }

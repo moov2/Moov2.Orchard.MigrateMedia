@@ -9,7 +9,6 @@ using Orchard.Logging;
 using Orchard.MediaLibrary.Services;
 using System;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace Moov2.Orchard.MigrateMedia.Services
 {
@@ -57,7 +56,7 @@ namespace Moov2.Orchard.MigrateMedia.Services
             }
         }
 
-        public MigrateMediaResult MigrateFileSystemToAzureBlobStorageAsync(string connectionString)
+        public MigrateMediaResult MigrateFileSystemToAzureBlobStorageAsync(string connectionString, bool isOverwrite)
         {
             var mediaItems = _mediaLibraryService.GetMediaContentItems()
                 .List();
@@ -69,7 +68,7 @@ namespace Moov2.Orchard.MigrateMedia.Services
             {
                 var path = Path.Combine(mediaItem.FolderPath, mediaItem.FileName);
 
-                if (!_storageProvider.FileExists(path) || azureFileSystem.FileExists(path))
+                if (!_storageProvider.FileExists(path) || (!isOverwrite && azureFileSystem.FileExists(path)))
                 {
                     result.IgnoredCount++;
                     continue;
@@ -77,6 +76,9 @@ namespace Moov2.Orchard.MigrateMedia.Services
 
                 try
                 {
+                    if (isOverwrite && azureFileSystem.FileExists(path))
+                        azureFileSystem.DeleteFile(path);
+
                     var file = _storageProvider.GetFile(path);
                     var azureFile = azureFileSystem.CreateFile(path);
 
@@ -131,6 +133,6 @@ namespace Moov2.Orchard.MigrateMedia.Services
     {
         bool CanConnectToAzureCloudStorage(string connectionString);
 
-        MigrateMediaResult MigrateFileSystemToAzureBlobStorageAsync(string connectionString);
+        MigrateMediaResult MigrateFileSystemToAzureBlobStorageAsync(string connectionString, bool isOverwrite);
     }
 }

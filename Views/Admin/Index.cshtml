@@ -23,6 +23,13 @@
     </fieldset>
 
     <fieldset>
+        <span class="checkbox-and-label">
+            @Html.CheckBoxFor(m => m.IsOverwrite)
+            <label for="@Html.FieldIdFor(m => m.IsOverwrite)" class="forcheckbox">@T("Overwrite files that already exist")</label>
+        </span>
+    </fieldset>
+
+    <fieldset>
         <button type="submit">Begin Migration</button>
     </fieldset>
 
