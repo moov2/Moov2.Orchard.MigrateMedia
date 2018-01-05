@@ -4,6 +4,7 @@ using Orchard;
 using Orchard.Localization;
 using Orchard.UI.Notify;
 using System.Configuration;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 
 namespace Moov2.Orchard.MigrateMedia.Controllers
@@ -33,7 +34,7 @@ namespace Moov2.Orchard.MigrateMedia.Controllers
             _orchardServices = orchardServices;
 
             T = NullLocalizer.Instance;
-        }
+        }   
 
         #endregion
 
@@ -67,7 +68,17 @@ namespace Moov2.Orchard.MigrateMedia.Controllers
                 return View(model);
             }
 
-            _orchardServices.Notifier.Add(NotifyType.Information, T("Successfully migrated media."));
+            var result = _migrateMediaService.MigrateFileSystemToAzureBlobStorageAsync(connectionString);
+
+            if (result.SuccessfulTransferCount > 0 || result.UnsuccessfulTransferCount == 0)
+                _orchardServices.Notifier.Add(NotifyType.Information, T(string.Format("Successfully migrated {0} media item(s).", result.SuccessfulTransferCount)));
+
+            if (result.IgnoredCount > 0)
+                _orchardServices.Notifier.Add(NotifyType.Warning, T(string.Format("Ignored {0} media item(s) during migration.", result.IgnoredCount)));
+
+            if (result.UnsuccessfulTransferCount > 0)
+                _orchardServices.Notifier.Add(NotifyType.Error, T(string.Format("Failed to migrate {0} media item(s).", result.UnsuccessfulTransferCount)));
+
             return RedirectToAction("Index");
         }
 
